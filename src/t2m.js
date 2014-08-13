@@ -58,6 +58,19 @@ var T2M = (function () {
 			var data_str = event.target.result,
 				data;
 
+			if (data_str instanceof ArrayBuffer) {
+				// Convert to string
+				var data_str2 = "",
+					i;
+
+				data_str = new Uint8Array(data_str);
+				for (i = 0; i < data_str.length; ++i) {
+					data_str2 += String.fromCharCode(data_str[i]);
+				}
+
+				data_str = data_str2;
+			}
+
 			try {
 				this.data = Bencode.decode(data_str);
 			}
@@ -204,7 +217,12 @@ var T2M = (function () {
 				reader.addEventListener("error", on_reader_error.bind(this), false);
 				reader.addEventListener("abort", on_reader_abort.bind(this), false);
 
-				reader.readAsBinaryString(file);
+				try {
+					reader.readAsBinaryString(file);
+				}
+				catch (e) {
+					reader.readAsArrayBuffer(file);
+				}
 			},
 
 			on: function (event, callback) {

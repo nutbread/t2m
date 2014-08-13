@@ -201,6 +201,7 @@ label:not(for):hover label.checkbox:before {
 	visibility: visible;
 }
 label.checkbox>input[type=checkbox] {
+	position: absolute;
 	visibility: hidden;
 	display: none;
 }
@@ -208,14 +209,13 @@ label.checkbox>svg {
 	display: none;
 	width: 100%;
 	height: 100%;
-	display: block;
 	position: relative;
 }
 label.checkbox>svg>polygon {
 	fill: #111111;
 }
-label.checkbox>input[type=checkbox]:not(:checked)+svg {
-	display: none;
+label.checkbox>input[type=checkbox]:checked+svg {
+	display: block;
 }
 
 
