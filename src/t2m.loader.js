@@ -544,6 +544,21 @@
 
 	})();
 
+	var restyle_noscript = function () {
+		// Script
+		var nodes = document.querySelectorAll(".script_disabled"),
+			i;
+
+		for (i = 0; i < nodes.length; ++i) {
+			nodes[i].classList.remove("script_visible");
+		}
+
+		nodes = document.querySelectorAll(".script_enabled");
+		for (i = 0; i < nodes.length; ++i) {
+			nodes[i].classList.add("script_visible");
+		}
+	};
+
 	var rice_checkboxes = function (nodes) {
 		var nodes = nodes || document.querySelectorAll("input[type=checkbox].checkbox"),
 			svgns = "http://www.w3.org/2000/svg",
@@ -580,17 +595,8 @@
 		// Noscript
 		var nodes, i;
 
-		// Script
-		nodes = document.querySelectorAll(".script_disabled");
-		for (i = 0; i < nodes.length; ++i) {
-			nodes[i].classList.remove("script_visible");
-		}
-		nodes = document.querySelectorAll(".script_enabled");
-		for (i = 0; i < nodes.length; ++i) {
-			nodes[i].classList.add("script_visible");
-		}
-
 		// Rice
+		restyle_noscript();
 		rice_checkboxes();
 
 		// Stop propagation links

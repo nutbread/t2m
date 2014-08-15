@@ -165,19 +165,19 @@ code.nowrap {
 	display: none;
 }
 
-input[type=checkbox] {
+input[type=checkbox],
+input[type=radio] {
 	padding: 0;
 	margin: 0;
 	vertical-align: middle;
 }
 
 label.checkbox {
-	font-size: 0.75em;
 	display: inline-block;
-	width: 1em;
-	height: 1em;
+	width: 0.75em;
+	height: 0.75em;
 	vertical-align: middle;
-	border: 0.125em solid #111111;
+	border: 0.09375em solid #111111;
 	border-radius: 0.25em;
 	padding: 0.125em;
 	position: relative;
@@ -185,6 +185,7 @@ label.checkbox {
 	cursor: pointer;
 }
 label.checkbox:before {
+	z-index: -1;
 	visibility: hidden;
 	position: absolute;
 	display: block;
@@ -197,7 +198,7 @@ label.checkbox:before {
 	border-radius: 0.125em;
 }
 label.checkbox:hover:before,
-label:not(for):hover label.checkbox:before {
+label:not([for]):hover label.checkbox:before {
 	visibility: visible;
 }
 label.checkbox>input[type=checkbox] {
