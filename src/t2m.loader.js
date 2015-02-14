@@ -4,236 +4,68 @@
 (function () {
 	"use strict";
 
-	// Module for performing actions as soon as possible
-	var ASAP = (function () {
+	// Function for performing actions as soon as possible
+	var on_ready = (function () {
 
-		// Variables
-		var state = 0;
-		var callbacks_asap = [];
-		var callbacks_ready = [];
-		var callbacks_check = [];
-		var callback_check_interval = null;
-		var callback_check_interval_time = 20;
-		var on_document_readystatechange_interval = null;
+		// Vars
+		var callbacks = [],
+			check_interval = null,
+			check_interval_time = 250;
 
+		// Check if ready and run callbacks
+		var callback_check = function () {
+			if (
+				(document.readyState === "interactive" || document.readyState === "complete") &&
+				callbacks !== null
+			) {
+				// Run callbacks
+				var cbs = callbacks,
+					cb_count = cbs.length,
+					i;
 
+				// Clear
+				callbacks = null;
 
-		// Events
-		var on_document_readystatechange = function () {
-			// State check
-			if (document.readyState == "interactive") {
-				if (state == 0) {
-					// Mostly loaded
-					state = 1;
-
-					// Callbacks
-					var c = callbacks_asap;
-					callbacks_asap = null;
-					trigger_callbacks(c);
-				}
-			}
-			else if (document.readyState == "complete") {
-				// Loaded
-				state = 2;
-
-				// Callbacks
-				var c;
-				if (callbacks_asap !== null) {
-					c = callbacks_asap;
-					callbacks_asap = null;
-					trigger_callbacks(c);
+				for (i = 0; i < cb_count; ++i) {
+					cbs[i].call(null);
 				}
 
-				c = callbacks_ready;
-				callbacks_ready = null;
-				trigger_callbacks(c);
+				// Clear events and checking interval
+				window.removeEventListener("load", callback_check, false);
+				window.removeEventListener("readystatechange", callback_check, false);
 
-				// Complete
-				clear_events();
-			}
-		};
-		var on_callbacks_check = function () {
-			// Test all
-			for (var i = 0; i < callbacks_check.length; ++i) {
-				if (callback_test.call(null, callbacks_check[i])) {
-					// Remove
-					callbacks_check.splice(i, 1);
-					--i;
-				}
-			}
-
-			// Stop timer?
-			if (callbacks_check.length == 0) {
-				clearInterval(callback_check_interval);
-				callback_check_interval = null;
-			}
-		};
-		var on_callback_timeout = function (data) {
-			// Remove
-			for (var i = 0; i < callbacks_check.length; ++i) {
-				if (callbacks_check[i] === data) {
-					// Update
-					data.timeout_timer = null;
-
-					// Callback
-					if (data.timeout_callback) data.timeout_callback.call(null);
-
-					// Remove
-					callbacks_check.splice(i, 1);
-					return;
-				}
-			}
-		};
-
-		// Clear events
-		var clear_events = function () {
-			if (on_document_readystatechange_interval !== null) {
-				// Remove timer
-				clearInterval(on_document_readystatechange_interval);
-				on_document_readystatechange_interval = null;
-
-				// Remove events
-				document.removeEventListener("readystatechange", on_document_readystatechange, false);
-
-				// Clear callbacks
-				callbacks_asap = null;
-				callbacks_ready = null;
-			}
-		};
-
-		// Test callback
-		var callback_test = function (data) {
-			if (!data.condition || data.condition.call(null)) {
-				// Call
-				data.callback.call(null);
-
-				// Stop timeout
-				if (data.timeout_timer !== null) {
-					clearTimeout(data.timeout_timer);
-					data.timeout_timer = null;
+				if (check_interval !== null) {
+					clearInterval(check_interval);
+					check_interval = null;
 				}
 
 				// Okay
 				return true;
 			}
 
-			// Not called
+			// Not executed
 			return false;
 		};
-		var callback_wait = function (data) {
-			// Add to list
-			callbacks_check.push(data);
-			if (callback_check_interval === null) {
-				callback_check_interval = setInterval(on_callbacks_check, callback_check_interval_time);
-			}
 
-			// Timeout
-			if (data.timeout > 0) {
-				data.timeout_timer = setTimeout(on_callback_timeout.bind(null, data), data.timeout * 1000);
-			}
-		};
+		// Listen
+		window.addEventListener("load", callback_check, false);
+		window.addEventListener("readystatechange", callback_check, false);
 
-		// Trigger callback list
-		var trigger_callbacks = function (callback_list) {
-			for (var i = 0, j = callback_list.length; i < j; ++i) {
-				// Test
-				if (!callback_test.call(null, callback_list[i])) {
-					// Queue
-					callback_wait.call(null, callback_list[i]);
-				}
-			}
-		};
-
-		// Add callback
-		var add_callback = function (callback, condition, timeout, timeout_callback, target) {
-			var cb_data = {
-				callback: callback,
-				condition: condition || null,
-				timeout: timeout || 0,
-				timeout_callback: timeout_callback || null,
-				timeout_timer: null
-			};
-
-			if (target === null) {
-				// Test
-				if (!callback_test.call(null, cb_data)) {
-					// Queue
-					callback_wait.call(null, cb_data);
-				}
+		// Callback adding function
+		return function (cb) {
+			if (callbacks === null) {
+				// Ready to execute
+				cb.call(null);
 			}
 			else {
-				// Add
-				target.push(cb_data);
+				// Delay
+				callbacks.push(cb);
+
+				// Set a check interval
+				if (check_interval === null && callback_check() !== true) {
+					check_interval = setInterval(callback_check, check_interval_time);
+				}
 			}
-		};
-
-		// Setup events
-		on_document_readystatechange();
-		if (state < 2) {
-			document.addEventListener("readystatechange", on_document_readystatechange, false);
-			on_document_readystatechange_interval = setInterval(on_document_readystatechange, 20);
-		}
-
-
-
-		// Return functions
-		return {
-
-			/**
-				Call a function as soon as possible when the DOM is fully loaded
-				(document.readyState == "interactive")
-
-				@param callback
-					The callback to be called
-					The call format is:
-						callback.call(null)
-				@param condition
-					An additional condition to test for.
-					If this condition is falsy, a timeout interval is
-					used to continuously test it until it is true (or timed out)
-					The call format is:
-						condition.call(null)
-				@param timeout
-					If specified, a maximum time limit is given for the condition to be met
-					Must be greater than 0, units are seconds
-				@param timeout_callback
-					If specified, this is a callback which is called when the condition check
-					has timed out
-					The call format is:
-						timeout_callback.call(null)
-			*/
-			asap: function (callback, condition, timeout, timeout_callback) {
-				// Add to asap
-				add_callback.call(null, callback, condition, timeout, timeout_callback, callbacks_asap);
-			},
-			/**
-				Call a function as soon as possible when the DOM is fully loaded
-				(document.readyState == "complete")
-
-				@param callback
-					The callback to be called
-					The call format is:
-						callback.call(null)
-				@param condition
-					An additional condition to test for.
-					If this condition is falsy, a timeout interval is
-					used to continuously test it until it is true (or timed out)
-					The call format is:
-						condition.call(null)
-				@param timeout
-					If specified, a maximum time limit is given for the condition to be met
-					Must be greater than 0, units are seconds
-				@param timeout_callback
-					If specified, this is a callback which is called when the condition check
-					has timed out
-					The call format is:
-						timeout_callback.call(null)
-			*/
-			ready: function (callback, condition, timeout, timeout_callback) {
-				// Add to ready
-				add_callback.call(null, callback, condition, timeout, timeout_callback, callbacks_ready);
-			},
-
 		};
 
 	})();
@@ -591,7 +423,7 @@
 
 
 	// Execute
-	ASAP.asap(function () {
+	on_ready(function () {
 		// Noscript
 		var nodes, i;
 
