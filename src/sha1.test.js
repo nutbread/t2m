@@ -87,7 +87,7 @@
 		}
 
 		// Final status
-		if (failures == 0) {
+		if (failures === 0) {
 			console.log("All tests okay");
 		}
 		else {

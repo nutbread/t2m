@@ -55,8 +55,7 @@ var T2M = (function () {
 
 		var on_reader_load = function (event) {
 			// Decode
-			var data_str = event.target.result,
-				data;
+			var data_str = event.target.result;
 
 			if (data_str instanceof ArrayBuffer) {
 				// Convert to string
@@ -88,10 +87,10 @@ var T2M = (function () {
 			// Loaded
 			trigger.call(this, "load", {});
 		};
-		var on_reader_error = function (event) {
+		var on_reader_error = function () {
 			trigger.call(this, "read_error", {});
 		};
-		var on_reader_abort = function (event) {
+		var on_reader_abort = function () {
 			trigger.call(this, "read_abort", {});
 		};
 		var trigger = function (event, data) {
@@ -148,10 +147,10 @@ var T2M = (function () {
 		*/
 		Torrent.components_to_magnet = function (link_components, custom_name, tracker_mode, uri_encode, component_order) {
 			// Vars
-			var link, obj, list1, list2, val, i, j;
+			var link, obj, list1, val, i, j;
 
 			uri_encode = (uri_encode === false) ? no_change : (typeof(uri_encode) == "function" ? uri_encode : encodeURIComponent);
-			component_order = (component_order == null) ? magnet_component_order_default : component_order;
+			component_order = (component_order === null) ? magnet_component_order_default : component_order;
 
 			// Setup
 			if (typeof(custom_name) == "string") {
@@ -176,7 +175,7 @@ var T2M = (function () {
 				list1 = obj.values;
 				for (j = 0; j < list1.length; ++j) {
 					// Separator
-					link += (val == 0 ? "?" : "&");
+					link += (val === 0 ? "?" : "&");
 					++val;
 
 					// Key
@@ -280,7 +279,7 @@ var T2M = (function () {
 				if (this.data === null || !("info" in this.data)) return null;
 
 				// Bencode info
-				var info = this.data["info"],
+				var info = this.data.info,
 					info_bencoded = Bencode.encode(info),
 					info_hasher = new SHA1(),
 					link_components = {},
@@ -304,14 +303,14 @@ var T2M = (function () {
 				link_components.xt.values.push([ "urn:btih:{0}", info_hash ]);
 
 				if ("length" in info) {
-					link_components.xl.values.push([ info["length"] ]);
+					link_components.xl.values.push([ info.length ]);
 				}
 
 				if (typeof(custom_name) == "string") {
 					link_components.dn.values.push([ custom_name ]);
 				}
 				else if ("name" in info) {
-					link_components.dn.values.push([ UTF8.decode(info["name"]) ]);
+					link_components.dn.values.push([ UTF8.decode(info.name) ]);
 				}
 				else if (custom_name !== false && this.file_name) {
 					link_components.dn.values.push([ this.file_name ]);
@@ -319,7 +318,7 @@ var T2M = (function () {
 
 				list1 = link_components.tr.values;
 				if ("announce" in this.data) {
-					list1.push([ UTF8.decode(this.data["announce"]) ]);
+					list1.push([ UTF8.decode(this.data.announce) ]);
 				}
 				if ("announce-list" in this.data && Array.isArray(list2 = this.data["announce-list"])) {
 					// Add more trackers
@@ -366,7 +365,7 @@ var T2M = (function () {
 
 
 
-		var on_options_link_click = function (event) {
+		var on_options_link_click = function () {
 			if (this.options_container.classList.contains("converted_item_options_container_visible")) {
 				this.options_container.classList.remove("converted_item_options_container_visible");
 				this.magnet_textbox.readOnly = true;
@@ -377,20 +376,20 @@ var T2M = (function () {
 			}
 		};
 
-		var on_textbox_click = function (event) {
+		var on_textbox_click = function () {
 			if (this.magnet_textbox.readOnly) {
 				this.magnet_textbox.select();
 			}
 		};
-		var on_textbox_keydown = function (event) {
+		var on_textbox_keydown = function () {
 			if (this.magnet_textbox.readOnly) return;
 
 			setTimeout(on_textbox_update.bind(this), 10);
 		};
-		var on_textbox_change = function (event) {
+		var on_textbox_change = function () {
 			on_textbox_update.call(this);
 		};
-		var on_textbox_update = function (event) {
+		var on_textbox_update = function () {
 			// Get value
 			var uri = this.magnet_textbox.value,
 				protocol = "magnet:";
@@ -412,7 +411,7 @@ var T2M = (function () {
 			this.magnet_link_text.textContent = uri;
 		};
 
-		var on_option_change = function (event) {
+		var on_option_change = function () {
 			update_links.call(this, true);
 		};
 
@@ -448,7 +447,7 @@ var T2M = (function () {
 			if (!update_displays) return;
 
 			// Update display
-			var i, j, opt_list, opt;
+			var i, j, opt_list;
 			for (i = 0; i < this.options.length; ++i) {
 				opt_list = this.options[i];
 
@@ -715,7 +714,7 @@ var T2M = (function () {
 
 	// Other functions
 	var rice_checkboxes = null;
-	var on_torrent_load = function (event) {
+	var on_torrent_load = function () {
 		var container = document.querySelector(".converted"),
 			result;
 

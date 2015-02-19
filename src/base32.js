@@ -30,7 +30,7 @@ var Base32 = (function () {
 				c1, c2, c3, c4, c5;
 
 			// Null pad
-			while ((str.length % 5) != 0) str += "\x00";
+			while ((str.length % 5) !== 0) str += "\x00";
 
 			// String modify
 			while (i < len) {
@@ -54,7 +54,7 @@ var Base32 = (function () {
 			if (i > len) {
 				i = pad_lengths[i - len]; // (i - len) equals the number of times \x00 was padded
 				str_new = str_new.substr(0, str_new.length - i);
-				while ((str_new.length % 8) != 0) str_new += pad_char;
+				while ((str_new.length % 8) !== 0) str_new += pad_char;
 			}
 
 			// Done

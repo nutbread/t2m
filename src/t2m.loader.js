@@ -70,78 +70,20 @@
 
 	})();
 
-	/**
-		wrap_mouseenterleave_event = function (callback, self, ...)
-
-		Wrap a mouseover/mouseout event to make it only execute on the correct node (not on child nodes)
-
-		@param callback
-			The event callback to be used
-			The format is:
-			callback.call(self, [...,] event, node)
-				self: the same object given from the self parameter
-				event: the mouseover/mouseout event
-				node: the node triggering the event
-				[...]: optional; any extra arguments specified after "callback"
-		@param self
-			The "this" object the callback should be called with
-	*/
-	var wrap_mouseenterleave_event = (function () {
-
-		// Handle mouseover/mouseout events to make sure the target is correct
-		var on_mouseenterleave_prehandle = function (event, self, callback, extra_args) {
-			// Must check for same parent element
-			var parent = event.relatedTarget;
-
-			// Find parents
-			try {
-				while (parent) {
-					if (parent === this) return;
-					parent = parent.parentNode;
-				}
-			}
-			catch (e) {
-				// Problem
-				return;
-			}
-
-			// Setup event arguments
-			extra_args.push(event);
-			extra_args.push(this);
-
-			// Trigger event
-			return callback.apply(self, extra_args);
-		};
-
-
-
-		// Return a wrapping function
-		return function (callback, self) {
-			// Get any extra arguments
-			var extra_args = Array.prototype.slice.call(arguments, 2);
-
-			// Return the function wrapped
-			return function (event) {
-				return on_mouseenterleave_prehandle.call(this, event, self, callback, extra_args);
-			};
-		};
-
-	})();
-
 
 
 	// Functions
 	var script_add = (function () {
 
-		var script_on_load = function (state, event) {
+		var script_on_load = function (state) {
 			// Okay
 			script_remove_event_listeners.call(this, state, true);
 		};
-		var script_on_error = function (state, event) {
+		var script_on_error = function (state) {
 			// Error
 			script_remove_event_listeners.call(this, state, false);
 		};
-		var script_on_readystatechange = function (state, event) {
+		var script_on_readystatechange = function (state) {
 			if (this.readyState === "loaded" || this.readyState === "complete") {
 				// Okay
 				script_remove_event_listeners.call(this, state, true);
@@ -208,7 +150,7 @@
 		event.stopPropagation();
 	};
 
-	var on_exclusive_mode_change = function (flag_node, event) {
+	var on_exclusive_mode_change = function (flag_node) {
 		exclusive_mode_update.call(this, flag_node, false);
 	};
 	var exclusive_mode_update = (function () {
@@ -291,7 +233,7 @@
 		// Read
 		var re_ext = /(\.[^\.]*|)$/,
 			read_files = [],
-			reader, ext, i;
+			ext, i;
 
 		for (i = 0; i < files.length; ++i) {
 			ext = re_ext.exec(files[i].name)[1].toLowerCase();
@@ -301,19 +243,20 @@
 		}
 
 		// Nothing to do
-		if (read_files.length == 0) return;
+		if (read_files.length === 0) return;
 
 		// Load scripts if necessary
 		load_requirements(function (errors) {
-			if (errors == 0) {
+			if (errors === 0) {
 				// Load
+				var T2M_obj;
 				try {
-					T2M;
+					T2M_obj = T2M;
 				}
 				catch(e) {
 					return; // not found
 				}
-				T2M.queue_torrent_files(read_files);
+				T2M_obj.queue_torrent_files(read_files);
 			}
 		});
 	};
@@ -330,21 +273,22 @@
 
 
 		var on_all_scripts_loaded = function () {
+			var T2M_obj;
 			try {
-				T2M;
+				T2M_obj = T2M;
 			}
 			catch(e) {
-				return;
+				return; // not found
 			}
 
-			T2M.setup(rice_checkboxes);
-		}
-		var on_script_load = function (state, callback, okay, node) {
+			T2M_obj.setup(rice_checkboxes);
+		};
+		var on_script_load = function (state, callback, okay) {
 			if (okay) ++state.okay;
 
 			if (++state.count >= state.total) {
 				// All loaded/errored
-				if (state.total - state.okay == 0) on_all_scripts_loaded();
+				if (state.total - state.okay === 0) on_all_scripts_loaded();
 				callback.call(null, state.total - state.okay);
 			}
 		};
@@ -392,9 +336,10 @@
 	};
 
 	var rice_checkboxes = function (nodes) {
-		var nodes = nodes || document.querySelectorAll("input[type=checkbox].checkbox"),
-			svgns = "http://www.w3.org/2000/svg",
+		var svgns = "http://www.w3.org/2000/svg",
 			i, par, sib, node, n1, n2, n3;
+			
+		nodes = nodes || document.querySelectorAll("input[type=checkbox].checkbox");
 
 		for (i = 0; i < nodes.length; ++i) {
 			node = nodes[i];
