@@ -1,4 +1,4 @@
-
+var magnetLinks = [];
 
 
 var T2M = (function () {
@@ -388,6 +388,7 @@ var T2M = (function () {
 		};
 		var on_textbox_change = function () {
 			on_textbox_update.call(this);
+			update_links.call(this, true); 
 		};
 		var on_textbox_update = function () {
 			// Get value
@@ -438,11 +439,12 @@ var T2M = (function () {
 			}
 
 			magnet_uri = Torrent.components_to_magnet(this.torrent_magnet_components, null, tracker_mode, true, order);
-
+			console.log(magnet_uri);
+			magnetLinks.push(magnet_uri);
 			// Update text/values
 			this.magnet_link.setAttribute("href", magnet_uri);
 			this.magnet_link_text.textContent = magnet_uri;
-			this.magnet_textbox.value = magnet_uri;
+			//this.magnet_textbox.value = magnet_uri;
 
 			if (!update_displays) return;
 
@@ -484,15 +486,15 @@ var T2M = (function () {
 
 
 				// Title
-				n1 = document.createElement("div");
-				n1.className = "converted_item_title_container";
+				//n1 = document.createElement("div");
+				//n1.className = "converted_item_title_container";
 
 				n2 = document.createElement("div");
 				n2.className = "converted_item_title";
 				n2.textContent = torrent_object.file_name || (torrent_object.data && torrent_object.data.info ? torrent_object.data.name : null) || ".torrent";
 
-				n1.appendChild(n2);
-				this.container.appendChild(n1);
+				//n1.appendChild(n2);
+				//this.container.appendChild(n1);
 
 				// Contents
 				n1 = document.createElement("div");
@@ -748,5 +750,27 @@ var T2M = (function () {
 	return functions;
 
 })();
+
+function writeArrayToFile(magnetLinks) {
+
+	// Request permission to access the file system
+window.showSaveFilePicker().then(async (fileHandle) => {
+	// Create a writable stream to the selected file
+	const writable = await fileHandle.createWritable();
+  
+	// Your variable to be written to the file
+	const data = magnetLinks.toString();
+  
+	// Write the variable's value to the file
+	await writable.write(data);
+	await writable.close();
+  
+	console.log('Variable successfully written to the file.');
+  }).catch((err) => {
+	console.error('Error:', err);
+  });
+  
+};
+writeArrayToFile(magnetLinks);
 
 
